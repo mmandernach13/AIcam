@@ -53,8 +53,7 @@ def parse_detections(metadata: dict):
     last_detections = [
         Detection(box, category, score, metadata)
         for box, score, category in zip(boxes, scores, classes)
-        if score > threshold 
-        #and labels[int(category)] == "person"
+        if score > threshold and labels[int(category)] == "person"
     ]
     return last_detections
 
@@ -111,12 +110,38 @@ def draw_detections(request, stream="main"):
             cv2.rectangle(m.array, (x, y), (x + w, y + h), (0, 255, 0, 0), thickness=2)
             cv2.circle(m.array, (int(x + w/2), int(y + h/2)), 3, (255, 0, 0, 0), thickness=-1)
             
-        #if intrinsics.preserve_aspect_ratio:
-            #b_x, b_y, b_w, b_h = imx500.get_roi_scaled(request)
-            #color = (255, 0, 0)  # red
-            #cv2.putText(m.array, "ROI", (b_x + 5, b_y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-            #cv2.rectangle(m.array, (b_x, b_y), (b_x + b_w, b_y + b_h), (255, 0, 0, 0))
+        if intrinsics.preserve_aspect_ratio:
+            b_x, b_y, b_w, b_h = imx500.get_roi_scaled(request)
+            color = (255, 0, 0)  # red
+            cv2.putText(m.array, "ROI", (b_x + 5, b_y + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+            cv2.rectangle(m.array, (b_x, b_y), (b_x + b_w, b_y + b_h), (255, 0, 0, 0))
 
+def track(bb_center=None, m: CamMount=None):
+    x = bb_center[0] - frame_center[0]
+    y = bb_center[1] - frame_center[1]
+
+    bstep = 5
+    lstep = 2
+
+    if x < -4 * delta:
+        m.pan(bstep, 'left')
+    elif x < -delta: 
+        m.pan(lstep, 'left')
+
+    if x > 4 * delta:
+        m.pan(bstep, 'right')
+    elif x > delta:
+        m.pan(lstep, 'right')
+
+    if y < -4 * delta:
+        m.tilt(bstep, 'up')
+    elif y < -delta:
+        m.tilt(lstep, 'up')
+
+    if y > 4 * delta:
+        m.tilt(bstep, 'down')
+    elif y > delta:
+        m.tilt(lstep, 'down')
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -190,30 +215,20 @@ if __name__ == "__main__":
     global frame_center
     frame_center = (320, 240)
     global delta
-    delta = 25
+    delta = 30
 
     mount = CamMount()
-    pan_inc = 2
-    tilt_inc = 2
 
     bb_center = None
 
     while True:
         last_results = parse_detections(picam2.capture_metadata())
-        for d in last_results:
-            if labels[int(d.category)] == "sports ball" or labels[int(d.category)] ==  "frisbee":
+        if last_results is not None:
+            for d in last_results:
                 x, y, w, h = d.box
                 bb_center = (x + w/2, y + h/2)
                 
         if bb_center is not None:    
-            if bb_center[0] < frame_center[0] - delta:
-                mount.pan(pan_inc, 'left')
-            if bb_center[0] > frame_center[0] + delta: 
-                mount.pan(pan_inc, 'right')
-
-            if bb_center[1] < frame_center[1] - delta:
-                mount.tilt(tilt_inc, 'up')
-            if bb_center[1] > frame_center[1] + delta:
-                mount.tilt(tilt_inc, 'down')
+            track(bb_center, mount)
 
         bb_center=None
