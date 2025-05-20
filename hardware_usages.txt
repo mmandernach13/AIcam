@@ -1,4 +1,0 @@
-tilt servo: GPIO19, 400 +/- 30 mA on 
-pan servo: GPIO18, same current consumption
-
-pi has max of 1.2A to 5V pins
