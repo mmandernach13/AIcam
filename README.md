@@ -1,4 +1,4 @@
-# AIcam
+# Raspberry Pi AI Camera Object Tracking
 
 AIcam is a Raspberry Pi-based application that captures video using the IMX500 camera module, performs real-time object detection to identify people, and tracks them by adjusting a servo-controlled camera mount. The project integrates computer vision and hardware control to create an autonomous tracking camera system.
 
@@ -38,7 +38,7 @@ AIcam is a Raspberry Pi-based application that captures video using the IMX500 c
    ```bash
    python object_tracking.py
    ```
-3. The camera will capture video, detect people, and adjust the mount to track them. Bounding boxes and labels will be displayed on the video feed.
+3. The camera will capture video, detect people, and adjust the mount to track them. Bounding boxes and labels will be displayed on the video feed. The object tracked can be changed in the object_tracking.parse_detections method by changing the label(s) that get added to the detection list.
 4. Press `Ctrl+C` to stop the program and safely detach the servos.
 
 ### Optional Arguments
