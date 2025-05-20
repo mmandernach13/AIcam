@@ -1,0 +1,4 @@
+opencv-python==4.8.1
+numpy==1.26.4
+picamera2==0.3.18
+gpiozero==2.0.0
